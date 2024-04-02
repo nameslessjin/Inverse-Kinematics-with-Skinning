@@ -42,6 +42,6 @@ typedef double revreal;
 
 /*--------------------------------------------------------------------------*/
 /* Use Boost Library Pool allocator */
-#define USE_BOOST_POOL 1
+#define USE_BOOST_POOL 0
 
 #endif
