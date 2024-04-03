@@ -11,7 +11,7 @@ int main()
 {
   // We define a function y = f(x), mapping R^3 --> R^2. Let y=[y0 y1]^T, and x=[x0 x1 x2]^T.
   // Then, f is defined as:
-  // y0 = x0 + 2 x2 + 3 x2
+  // y0 = x0 + 2 x1 + 3 x2
   // y1 = 4 x0 + 5 x1
   // Our goal is to use ADOL-C to compute the Jacobian matrix of f:
   // J = 

@@ -205,23 +205,46 @@ void FK::computeLocalAndGlobalTransforms(
     const std::vector<int> jointParents, const vector<int> & jointUpdateOrder,
     vector<RigidTransform4d> & localTransforms, vector<RigidTransform4d> & globalTransforms)
 {
-  // Students should implement this.
   // First, compute the localTransform for each joint, using eulerAngles and jointOrientationEulerAngles,
   // and the "euler2Rotation" function.
   // Then, recursively compute the globalTransforms, from the root to the leaves of the hierarchy.
   // Use the jointParents and jointUpdateOrder arrays to do so.
   // Also useful are the Mat3d and RigidTransform4d classes defined in the Vega folder.
 
-  // The following is just a dummy implementation that should be replaced.
-  double identity[16] = {
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1 };
+  // compute local transformation
   for(int i=0; i<localTransforms.size(); i++)
   {
-    localTransforms[i] = RigidTransform4d(identity);
-    globalTransforms[i] = RigidTransform4d(identity);
+    double eulerR[9], orientationR[9];
+
+    euler2Rotation(eulerAngles[i], eulerR, rotateOrders[i]);
+    euler2Rotation(jointOrientationEulerAngles[i], orientationR, rotateOrders[i]);
+
+    Mat3d eR(eulerR);
+    Mat3d oR(orientationR);
+    Mat3d R = oR * eR;
+
+    double local[16] = {
+      R[0][0], R[0][1], R[0][2], translations[i][0],
+      R[1][0], R[1][1], R[1][2], translations[i][1],
+      R[2][0], R[2][1], R[2][2], translations[i][2],
+      0,    0,    0,    1
+    };
+
+    localTransforms[i] = RigidTransform4d(local);
+    // globalTransforms[i] = RigidTransform4d(identity);
+  }
+
+  // compute global transformation
+  for (int i = 0; i < jointUpdateOrder.size(); ++i) {
+
+    int parentId = jointParents[i];
+
+    RigidTransform4d gParent(1.0);
+    RigidTransform4d lChild = localTransforms[i];
+
+    if (parentId != -1) gParent = globalTransforms[parentId];
+
+    globalTransforms[i] = gParent * lChild;
   }
 }
 
@@ -234,15 +257,9 @@ void FK::computeSkinningTransforms(
 {
   // Students should implement this.
 
-  // The following is just a dummy implementation that should be replaced.
-  double identity[16] = {
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1 };
   for(int i=0; i<skinTransforms.size(); i++)
   {
-    skinTransforms[i] = RigidTransform4d(identity);
+    skinTransforms[i] = globalTransforms[i] * invRestGlobalTransforms[i];
   }
 }
 

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <Eigen/Dense>
 using namespace std;
 
 // CSCI 520 Computer Animation and Simulation
@@ -78,9 +79,36 @@ void Skinning::applySkinning(const RigidTransform4d * jointSkinTransforms, doubl
   // The following below is just a dummy implementation.
   for(int i=0; i<numMeshVertices; i++)
   {
-    newMeshVertexPositions[3 * i + 0] = restMeshVertexPositions[3 * i + 0];
-    newMeshVertexPositions[3 * i + 1] = restMeshVertexPositions[3 * i + 1];
-    newMeshVertexPositions[3 * i + 2] = restMeshVertexPositions[3 * i + 2];
+
+    // use Eigen to represent vertex position
+    Eigen::Vector4d restVertexPos (
+      restMeshVertexPositions[3 * i + 0],
+      restMeshVertexPositions[3 * i + 1],
+      restMeshVertexPositions[3 * i + 2],
+      1
+    );
+
+
+    RigidTransform4d coef(0.0);
+
+    // goes over all the join that affect the vertex
+    // sum of wj * joint j's skinning transform matrix
+    for (int j = 0; j < numJointsInfluencingEachVertex; ++j) {
+      int jointId = meshSkinningJoints[i * numJointsInfluencingEachVertex + j];
+      double jointWeight = meshSkinningWeights[i * numJointsInfluencingEachVertex + j];
+
+      coef += jointSkinTransforms[jointId] * jointWeight;
+    }
+
+    double arr[16];
+    coef.convertToArray(arr);
+    Eigen::Map<Eigen::Matrix4d> coefMat(arr);
+
+    Eigen::Vector4d newVertexPos = coefMat * restVertexPos;
+
+    newMeshVertexPositions[3 * i + 0] = newVertexPos(0);
+    newMeshVertexPositions[3 * i + 1] = newVertexPos(1);
+    newMeshVertexPositions[3 * i + 2] = newVertexPos(2);
   }
 }
 

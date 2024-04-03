@@ -56,7 +56,8 @@ Mat3<real> Euler2Rotation(const real angle[3], RotateOrder order)
 template<typename real>
 void forwardKinematicsFunction(
     int numIKJoints, const int * IKJointIDs, const FK & fk,
-    const std::vector<real> & eulerAngles, std::vector<real> & handlePositions)
+    const std::vector<real> & eulerAngles, 
+    /*output*/ std::vector<real> & handlePositions)
 {
   // Students should implement this.
   // The implementation of this function is very similar to function computeLocalAndGlobalTransforms in the FK class.
@@ -67,6 +68,37 @@ void forwardKinematicsFunction(
   // It would be in principle possible to unify this "forwardKinematicsFunction" and FK::computeLocalAndGlobalTransforms(),
   // so that code is only written once. We considered this; but it is actually not easily doable.
   // If you find a good approach, feel free to document it in the README file, for extra credit.
+
+  // global Matrix x X_local = X_handle
+
+  for (int i = 0; i < numIKJoints; ++i) {
+    int jointId = IKJointIDs[i];
+
+    Vec3d restTranslation = fk.getJointRestTranslation(jointId);
+    RotateOrder rotateOrder = fk.getJointRotateOrder(jointId);
+    
+    int jointUpdateOrder = fk.getJointUpdateOrder(jointId);    
+
+    // double eulerR[9];
+    // Euler2Rotation(eulerAngles[i], rotateOrder);
+    // Mat3d R(eulerR);
+
+
+    // double local[16] = {
+    //   R[0][0], R[0][1], R[0][2], translations[i][0],
+    //   R[1][0], R[1][1], R[1][2], translations[i][1],
+    //   R[2][0], R[2][1], R[2][2], translations[i][2],
+    //   0,    0,    0,    1
+    // };
+
+
+    // multiplyAffineTransform4ds()
+
+  // inline friend void multiplyAffineTransform4ds(const Mat3<real> & R1, const Vec3<real> & t1, const Mat3<real> & R2, const Vec3<real> & t2,
+  //     Mat3<real> & Rout, Vec3<real> & tout) { Rout = R1 * R2; tout = R1 * t2 + t1; }
+
+  }
+
 }
 
 } // end anonymous namespaces
@@ -81,6 +113,12 @@ IK::IK(int numIKJoints, const int * IKJointIDs, FK * inputFK, int adolc_tagID)
   FKInputDim = fk->getNumJoints() * 3;
   FKOutputDim = numIKJoints * 3;
 
+  // std::cout << std::endl;
+  // for (int i = 0; i < numIKJoints; ++i) {
+  //   std::cout << " " << IKJointIDs[i];
+  // }
+  // std::cout << std::endl;
+
   train_adolc();
 }
 
@@ -93,12 +131,16 @@ void IK::train_adolc()
   //   This will later make it possible for you to compute the gradient of this function in IK::doIK
   //   (in other words, compute the "Jacobian matrix" J).
   // See ADOLCExample.cpp .
+
+
+
 }
 
 void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles)
 {
   // You may find the following helpful:
   int numJoints = fk->getNumJoints(); // Note that is NOT the same as numIKJoints!
+
 
   // Students should implement this.
   // Use adolc to evalute the forwardKinematicsFunction and its gradient (Jacobian). It was trained in train_adolc().
