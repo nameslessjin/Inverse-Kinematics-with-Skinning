@@ -212,8 +212,7 @@ void FK::computeLocalAndGlobalTransforms(
   // Also useful are the Mat3d and RigidTransform4d classes defined in the Vega folder.
 
   // compute local transformation
-  for(int i=0; i<localTransforms.size(); i++)
-  {
+  for (int i=0; i<localTransforms.size(); i++) {
     double eulerR[9], orientationR[9];
 
     euler2Rotation(eulerAngles[i], eulerR, rotateOrders[i]);
@@ -231,7 +230,6 @@ void FK::computeLocalAndGlobalTransforms(
     };
 
     localTransforms[i] = RigidTransform4d(local);
-    // globalTransforms[i] = RigidTransform4d(identity);
   }
 
   // compute global transformation
