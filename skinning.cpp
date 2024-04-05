@@ -77,38 +77,16 @@ void Skinning::applySkinning(const RigidTransform4d * jointSkinTransforms, doubl
   // Students should implement this
 
   // The following below is just a dummy implementation.
-  for(int i=0; i<numMeshVertices; i++)
-  {
+  for (int i = 0; i < numMeshVertices; ++i) {
 
-    // use Eigen to represent vertex position
-    Eigen::Vector4d restVertexPos (
-      restMeshVertexPositions[3 * i + 0],
-      restMeshVertexPositions[3 * i + 1],
-      restMeshVertexPositions[3 * i + 2],
-      1
-    );
-
-
-    RigidTransform4d coef(0.0);
-
-    // goes over all the join that affect the vertex
-    // sum of wj * joint j's skinning transform matrix
+    Vec4d restVertexPos = {restMeshVertexPositions[3 * i + 0], restMeshVertexPositions[3 * i + 1], restMeshVertexPositions[3 * i + 2], 1};
+    Vec4d newVertexPos(0.0);
+  
     for (int j = 0; j < numJointsInfluencingEachVertex; ++j) {
-      int jointId = meshSkinningJoints[i * numJointsInfluencingEachVertex + j];
-      double jointWeight = meshSkinningWeights[i * numJointsInfluencingEachVertex + j];
-
-      coef += jointSkinTransforms[jointId] * jointWeight;
+       newVertexPos += meshSkinningWeights[i * numJointsInfluencingEachVertex + j] * jointSkinTransforms[meshSkinningJoints[i * numJointsInfluencingEachVertex + j]] * restVertexPos;
     }
 
-    double arr[16];
-    coef.convertToArray(arr);
-    Eigen::Map<Eigen::Matrix4d> coefMat(arr);
-
-    Eigen::Vector4d newVertexPos = coefMat * restVertexPos;
-
-    newMeshVertexPositions[3 * i + 0] = newVertexPos(0);
-    newMeshVertexPositions[3 * i + 1] = newVertexPos(1);
-    newMeshVertexPositions[3 * i + 2] = newVertexPos(2);
+    for (int j = 0; j < 3; ++j) newMeshVertexPositions[3 * i + j] = newVertexPos[j];
   }
 }
 
