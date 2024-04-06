@@ -17,5 +17,6 @@ Jinsen Wu
 5. Modified Driver.cpp, allow switching between Tikhonov IK and Pseudo inverse IK with key 'p' during runtime.
 6. Provide a detailed report and comparison on Linear Blending Skinning vs Dual Quaternion Skinning, check file HW3Report
 7. Provide a detailed report and comparison on Tikhonov Regularization IK vs Pseudo Inverse IK, check file HW3Report
+8. Update the title of the app to reflect the current skinning mode and Inverse Kinematic mode
 
 

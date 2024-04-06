@@ -154,7 +154,7 @@ static void idleFunction()
 
     // update menu bar
     char windowTitle[4096];
-    sprintf(windowTitle, "Vertices: %d | %.1f FPS | graphicsFrame %d ", meshDeformable->Getn(), fpsBuffer.getAverage(), graphicsFrameID);
+    sprintf(windowTitle, "Vertices: %d | %.1f FPS | graphicsFrame %d | Skinning: %s | IK: %s", meshDeformable->Getn(), fpsBuffer.getAverage(), graphicsFrameID, isDQS ? "Dual Quaternion" : "Linear Blending", isPI ? "Pseudo Inverse" : "Tikhonov");
     glutSetWindowTitle(windowTitle);
     titleBarFrameCounter = 0;
   }
