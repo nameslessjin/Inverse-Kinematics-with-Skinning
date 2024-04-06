@@ -86,6 +86,7 @@ static vector<int> IKJointIDs;
 static vector<Vec3d> IKJointPos;
 
 static bool isDQS = false; 
+static bool isPI = false;
 
 //======================= Functions =============================
 
@@ -137,7 +138,7 @@ static void idleFunction()
   const int maxIKIters = 10;
   const double maxOneStepDistance = modelRadius / 1000;
 
-  ik->doIK(IKJointPos.data(), fk->getJointEulerAngles());
+  ik->doIK(IKJointPos.data(), fk->getJointEulerAngles(), isPI);
 
   updateSkinnedMesh();
 
@@ -327,6 +328,11 @@ static void keyboardFunc(unsigned char key, int x, int y)
     case 'd':
       isDQS = !isDQS;
       std::cout << (isDQS ? "Using Dual Quaternion Blending Skinning" : "Using Linear Blending Skinning") << std::endl;
+      break;
+
+    case 'p':
+      isPI = !isPI;
+      std::cout << (isPI ? "Using Pseudo Inverse IK" : "Using Tikhonov IK") << std::endl;
       break;
 
     default:

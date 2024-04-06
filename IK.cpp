@@ -193,7 +193,7 @@ void IK::train_adolc()
 
 }
 
-void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles)
+void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles, bool isPI)
 {
   // You may find the following helpful:
   int numJoints = fk->getNumJoints(); // Note that is NOT the same as numIKJoints!
@@ -238,7 +238,7 @@ void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles)
   }
 
 
-  Eigen::VectorXd dX(m);
+  Eigen::VectorXd dX(m); // 12 x 1
   for (int i = 0; i < numIKJoints; ++i) {
 
     Vec3d d = targetHandlePositions[i] - handlePositions[i];
@@ -247,13 +247,10 @@ void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles)
     }
   }
 
-  // Tikhonov: (J^T * J + lambda * I) * delta_theta = J^T * delta_x
+  Eigen::VectorXd dTheta;
 
-  Eigen::MatrixXd JTJ = J.transpose() * J;
-  double lambda = 1e-3;
-  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(JTJ.rows(), JTJ.cols());
-  Eigen::VectorXd JTx = J.transpose() * dX;
-  Eigen::VectorXd dTheta = (JTJ + lambda * I).ldlt().solve(JTx);
+
+  performIK(J, dX, dTheta, isPI);
 
   for (int i = 0; i < numJoints; ++i) {
     for (int j = 0; j < 3; ++j) {
@@ -263,3 +260,53 @@ void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles)
 
 }
 
+void IK::Tikhonov(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta) {
+
+  // Tikhonov: (J^T * J + lambda * I) * delta_theta = J^T * delta_x
+  Eigen::MatrixXd JTJ = J.transpose() * J;
+  double lambda = 1e-3;
+  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(JTJ.rows(), JTJ.cols());
+  Eigen::VectorXd JTx = J.transpose() * dX;
+  dTheta = (JTJ + lambda * I).ldlt().solve(JTx);
+}
+
+void IK::pseudoInverse(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta) {
+
+  // pseudo inverse
+  // delta_theta = JDagger * delta_x
+  Eigen::MatrixXd JJT = J * J.transpose();
+  Eigen::MatrixXd JJT_Inverse = JJT.inverse();
+  Eigen::MatrixXd JDagger = J.transpose() * JJT_Inverse; // 66 x 12, J is 12 x 66
+  dTheta = JDagger * dX;
+}
+
+void IK::performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta, bool isPI) {
+
+  bool subdivide = false;
+  double threshold = 1.0;
+  for (int i = 0; i < dX.rows(); ++i) {
+    if (dX(i) > threshold) subdivide = true;
+  }
+
+  if (subdivide) {
+    std::cout << subdivide << std::endl;
+    dX *= 0.5;
+    performIK(J, dX, dTheta, isPI);
+    dTheta *= 2;
+  } else {
+
+    int numJoints = fk->getNumJoints();
+
+    if (isPI) {
+      // pseudo inverse
+      // delta_theta = JDagger * delta_x
+      pseudoInverse(J, dX, dTheta);
+      } else {
+      // Tikhonov: (J^T * J + lambda * I) * delta_theta = J^T * delta_x
+      Tikhonov(J, dX, dTheta);
+    }
+
+  }
+
+
+}

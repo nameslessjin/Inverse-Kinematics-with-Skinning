@@ -62,6 +62,7 @@
         "valarray": "cpp",
         "variant": "cpp",
         "algorithm": "cpp",
-        "adolcforward": "cpp"
+        "adolcforward": "cpp",
+        "dense": "cpp"
     }
 }

@@ -8,6 +8,7 @@
 // Jernej Barbic and Yijing Li
 
 #include <cfloat>
+#include <Eigen/Dense>
 
 class FK;
 class Vec3d;
@@ -24,7 +25,10 @@ public:
   // input: an array of numIKJoints Vec3d's giving the positions of the IK handles, current joint Euler angles
   // output: the computed joint Euler angles; same meaning as in the FK class
   // Note: eulerAngles is both input and output
-  void doIK(const Vec3d * targetHandlePositions, Vec3d * eulerAngles);
+  void doIK(const Vec3d * targetHandlePositions, Vec3d * eulerAngles, bool isPI = false);
+  void Tikhonov(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta);
+  void pseudoInverse(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta);
+  void performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta, bool isPI = false);
 
   // IK parameters
   int getFKInputDim() const { return FKInputDim; }
