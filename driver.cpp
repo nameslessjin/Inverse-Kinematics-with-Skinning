@@ -85,6 +85,8 @@ static AveragingBuffer fpsBuffer(5);
 static vector<int> IKJointIDs;
 static vector<Vec3d> IKJointPos;
 
+static bool isDQS = false; 
+
 //======================= Functions =============================
 
 static void updateSkinnedMesh()
@@ -94,7 +96,7 @@ static void updateSkinnedMesh()
 
   fk->computeJointTransforms();
 
-  skinning->applySkinning(fk->getJointSkinTransforms(), newPosv);
+  skinning->applySkinning(fk->getJointSkinTransforms(), newPosv, isDQS);
   for(size_t i = 0; i < mesh->getNumVertices(); i++)
     mesh->setPosition(i, newPos[i]);
 
@@ -320,6 +322,11 @@ static void keyboardFunc(unsigned char key, int x, int y)
 
     case 's':
       renderSkeleton = !renderSkeleton;
+      break;
+
+    case 'd':
+      isDQS = !isDQS;
+      std::cout << (isDQS ? "Using Dual Quaternion Blending Skinning" : "Using Linear Blending Skinning") << std::endl;
       break;
 
     default:

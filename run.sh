@@ -1,4 +1,4 @@
-#cd armadillo
+cd armadillo
 #cd dragon
-cd hand
+#cd hand
 ../driver skin.config
