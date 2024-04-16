@@ -20,6 +20,7 @@
 #include "IK.h"
 #include "handleControl.h"
 #include "skeletonRenderer.h"
+#include "pic.h"
 #ifdef WIN32
   #include <windows.h>
 #endif
@@ -86,7 +87,11 @@ static vector<int> IKJointIDs;
 static vector<Vec3d> IKJointPos;
 
 static bool isDQS = false; 
-static bool isPI = false;
+static int IKMode = 0;
+
+// number of images saved to disk so far
+int sprite=0;
+int saveScreenToFile=0;
 
 //======================= Functions =============================
 
@@ -118,12 +123,56 @@ static void resetSkinningToRest()
   cout << "reset mesh to rest" << endl;
 }
 
+void saveScreenshot(int windowWidth, int windowHeight, char *filename)
+{
+  if (filename == NULL)
+    return;
+
+  // Allocate a picture buffer 
+  Pic * in = pic_alloc(windowWidth, windowHeight, 3, NULL);
+
+  printf("File to save to: %s\n", filename);
+
+  for (int i=windowHeight-1; i>=0; i--) 
+  {
+    glReadPixels(0, windowHeight-i-1, windowWidth, 1, GL_RGB, GL_UNSIGNED_BYTE,
+      &in->pix[i*in->nx*in->bpp]);
+  }
+
+  if (ppm_write(filename, in))
+    printf("File saved Successfully\n");
+  else
+    printf("Error in Saving\n");
+
+  pic_free(in);
+}
+
 static void idleFunction()
 {
   glutSetWindow(windowID);
   counter.StopCounter();
   // double dt = counter.GetElapsedTime();
   counter.StartCounter();
+
+  char s[20]="picxxxx.ppm";
+  int i;
+
+  // save screen to file
+  s[3] = 48 + (sprite / 1000);
+  s[4] = 48 + (sprite % 1000) / 100;
+  s[5] = 48 + (sprite % 100 ) / 10;
+  s[6] = 48 + sprite % 10;
+
+  if (saveScreenToFile==1)
+  {
+    saveScreenshot(windowWidth, windowHeight, s);
+    sprite++;
+  }
+
+  if (sprite >= 600) // allow only 300 snapshots
+  {
+    exit(0);	
+  }
 
   // Take appropriate action in case the user is dragging a vertex.
   auto processDrag = [&](int vertex, Vec3d posDiff)
@@ -138,7 +187,7 @@ static void idleFunction()
   const int maxIKIters = 10;
   const double maxOneStepDistance = modelRadius / 1000;
 
-  ik->doIK(IKJointPos.data(), fk->getJointEulerAngles(), isPI);
+  ik->doIK(IKJointPos.data(), fk->getJointEulerAngles(), IKMode);
 
   updateSkinnedMesh();
 
@@ -152,9 +201,13 @@ static void idleFunction()
     double fps = titleBarFrameCounter / elapsedTime;
     fpsBuffer.addValue(fps);
 
+    string IKMethod = IKMode == 0 ? "Tikhonov" : IKMode == 1 ? "Pseudo Inverse" : "Jacobian Transpose";
+
     // update menu bar
     char windowTitle[4096];
-    sprintf(windowTitle, "Vertices: %d | %.1f FPS | graphicsFrame %d | Skinning: %s | IK: %s", meshDeformable->Getn(), fpsBuffer.getAverage(), graphicsFrameID, isDQS ? "Dual Quaternion" : "Linear Blending", isPI ? "Pseudo Inverse" : "Tikhonov");
+    sprintf(windowTitle, "Vertices: %d | %.1f FPS | graphicsFrame %d | Skinning: %s | IK: %s", 
+    meshDeformable->Getn(), fpsBuffer.getAverage(), graphicsFrameID, isDQS ? "Dual Quaternion" : "Linear Blending", IKMethod.c_str());
+    
     glutSetWindowTitle(windowTitle);
     titleBarFrameCounter = 0;
   }
@@ -331,10 +384,14 @@ static void keyboardFunc(unsigned char key, int x, int y)
       break;
 
     case 'p':
-      isPI = !isPI;
-      std::cout << (isPI ? "Using Pseudo Inverse IK" : "Using Tikhonov IK") << std::endl;
+      IKMode = (IKMode + 1) % 3;
+      std::cout << "IKMode: " << IKMode << std::endl;
       break;
 
+    case 'c':
+      saveScreenToFile = !saveScreenToFile;
+      std::cout << (saveScreenToFile ? "saveScreenToFile ON" : "saveScreenToFile OFF") << std::endl;
+      break;
     default:
       break;
   }
@@ -463,7 +520,7 @@ static void mouseButtonActivity(int button, int state, int x, int y)
       {
         return make_pair(-1, false);
       };
-      handleControl.setMouseButtonActivity(id.leftMouseButtonDown(), stencilValue == 1, false,
+      handleControl.setMouseButtonActivity(id.leftMouseButtonDown(), stencilValue == 1, true,
           clickedPosition, zValue, getClosestHandle, addOrRemoveHandle);
 
       break;

@@ -28,7 +28,7 @@ public:
   void doIK(const Vec3d * targetHandlePositions, Vec3d * eulerAngles, bool isPI = false);
   void Tikhonov(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta);
   void pseudoInverse(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta);
-  void performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta, bool isPI = false);
+  void performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta, int IKMode = 0);
 
   // IK parameters
   int getFKInputDim() const { return FKInputDim; }

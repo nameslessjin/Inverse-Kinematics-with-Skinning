@@ -1,8 +1,8 @@
 # CSCI 520 HW3 skinning and IK Makefile 
 # Jernej Barbic, Yijing Li, USC
 
-DRIVER_OBJECT_FILES = driver.o skinning.o FK.o IK.o skeletonRenderer.o
-DRIVER_HEADERS = FK.h skinning.h IK.h minivectorTemplate.h skeletonRenderer.h
+DRIVER_OBJECT_FILES = driver.o skinning.o FK.o IK.o skeletonRenderer.o pic.o ppm.o
+DRIVER_HEADERS = FK.h skinning.h IK.h minivectorTemplate.h skeletonRenderer.h pic.h
 LIB_OBJECT_FILES = sceneObject.o sceneObjectWithRestPosition.o sceneObjectDeformable.o objMesh.o objMeshRender.o cameraLighting.o lighting.o vec3d.o listIO.o camera.o averagingBuffer.o inputDevice.o openGLHelper.o configFile.o mat4d.o mat3d.o handleControl.o handleRender.o matrixIO.o
 
 CXX = g++

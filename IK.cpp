@@ -193,7 +193,7 @@ void IK::train_adolc()
 
 }
 
-void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles, bool isPI)
+void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles, bool IKMode)
 {
   // You may find the following helpful:
   int numJoints = fk->getNumJoints(); // Note that is NOT the same as numIKJoints!
@@ -250,7 +250,7 @@ void IK::doIK(const Vec3d * targetHandlePositions, Vec3d * jointEulerAngles, boo
   Eigen::VectorXd dTheta;
 
 
-  performIK(J, dX, dTheta, isPI);
+  performIK(J, dX, dTheta, IKMode);
 
   for (int i = 0; i < numJoints; ++i) {
     for (int j = 0; j < 3; ++j) {
@@ -280,7 +280,7 @@ void IK::pseudoInverse(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd 
   dTheta = JDagger * dX;
 }
 
-void IK::performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta, bool isPI) {
+void IK::performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTheta, int IKMode) {
 
   bool subdivide = false;
   double threshold = 1.0;
@@ -291,19 +291,22 @@ void IK::performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTh
   if (subdivide) {
     std::cout << subdivide << std::endl;
     dX *= 0.5;
-    performIK(J, dX, dTheta, isPI);
+    performIK(J, dX, dTheta, IKMode);
     dTheta *= 2;
   } else {
 
     int numJoints = fk->getNumJoints();
 
-    if (isPI) {
+    if (IKMode == 0) {
+      // Tikhonov: (J^T * J + lambda * I) * delta_theta = J^T * delta_x
+      Tikhonov(J, dX, dTheta);
+
+    } else if (IKMode == 1) {
       // pseudo inverse
       // delta_theta = JDagger * delta_x
       pseudoInverse(J, dX, dTheta);
-      } else {
-      // Tikhonov: (J^T * J + lambda * I) * delta_theta = J^T * delta_x
-      Tikhonov(J, dX, dTheta);
+    } else {
+      dTheta = 100 * J.transpose() * dX;
     }
 
   }
