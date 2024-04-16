@@ -289,7 +289,6 @@ void IK::performIK(Eigen::MatrixXd &J, Eigen::VectorXd &dX, Eigen::VectorXd &dTh
   }
 
   if (subdivide) {
-    std::cout << subdivide << std::endl;
     dX *= 0.5;
     performIK(J, dX, dTheta, IKMode);
     dTheta *= 2;
