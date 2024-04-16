@@ -86,7 +86,7 @@ static AveragingBuffer fpsBuffer(5);
 static vector<int> IKJointIDs;
 static vector<Vec3d> IKJointPos;
 
-static bool isDQS = false; 
+static int skinMode = 0;
 static int IKMode = 0;
 
 // number of images saved to disk so far
@@ -102,7 +102,7 @@ static void updateSkinnedMesh()
 
   fk->computeJointTransforms();
 
-  skinning->applySkinning(fk->getJointSkinTransforms(), newPosv, isDQS);
+  skinning->applySkinning(fk->getJointSkinTransforms(), newPosv, skinMode);
   for(size_t i = 0; i < mesh->getNumVertices(); i++)
     mesh->setPosition(i, newPos[i]);
 
@@ -202,11 +202,12 @@ static void idleFunction()
     fpsBuffer.addValue(fps);
 
     string IKMethod = IKMode == 0 ? "Tikhonov" : IKMode == 1 ? "Pseudo Inverse" : "Jacobian Transpose";
+    string skinMethod = skinMode == 0 ? "Linear Blending" : skinMode == 1 ? "Dual Quaternion" : "Spherical Blending";
 
     // update menu bar
     char windowTitle[4096];
     sprintf(windowTitle, "Vertices: %d | %.1f FPS | graphicsFrame %d | Skinning: %s | IK: %s", 
-    meshDeformable->Getn(), fpsBuffer.getAverage(), graphicsFrameID, isDQS ? "Dual Quaternion" : "Linear Blending", IKMethod.c_str());
+    meshDeformable->Getn(), fpsBuffer.getAverage(), graphicsFrameID, skinMethod.c_str(), IKMethod.c_str());
     
     glutSetWindowTitle(windowTitle);
     titleBarFrameCounter = 0;
@@ -379,8 +380,8 @@ static void keyboardFunc(unsigned char key, int x, int y)
       break;
 
     case 'd':
-      isDQS = !isDQS;
-      std::cout << (isDQS ? "Using Dual Quaternion Blending Skinning" : "Using Linear Blending Skinning") << std::endl;
+      skinMode = (skinMode + 1) % 3;
+      std::cout << "skinMode: " << skinMode << std::endl;
       break;
 
     case 'p':
