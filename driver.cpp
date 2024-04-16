@@ -520,7 +520,7 @@ static void mouseButtonActivity(int button, int state, int x, int y)
       {
         return make_pair(-1, false);
       };
-      handleControl.setMouseButtonActivity(id.leftMouseButtonDown(), stencilValue == 1, true,
+      handleControl.setMouseButtonActivity(id.leftMouseButtonDown(), stencilValue == 1, false,
           clickedPosition, zValue, getClosestHandle, addOrRemoveHandle);
 
       break;
